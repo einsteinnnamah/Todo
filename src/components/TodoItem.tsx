@@ -16,7 +16,7 @@ export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
           onChange={onToggle}
           className="h-4 w-4"
         />
-        <span className={todo.completed ? "line-through text-gray-500" : ""}>
+        <span className={todo.completed ? "line-through text-black" : ""}>
           {todo.text}
         </span>
       </div>
