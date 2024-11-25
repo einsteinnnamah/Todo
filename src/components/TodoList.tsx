@@ -19,21 +19,16 @@ export const TodoList = () => {
   const addTodo = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      const dueDate = prompt("Please enter due date (YYYY-MM-DD):");
-      if (dueDate) {
-        const createdAt = new Date().toISOString();
+      const newTodo = {
+        id: Date.now(),
+        text: input.trim(),
+        completed: false,
+        dueDate: new Date(),
+        createdAt: new Date(),
+      };
 
-        const todoItem = {
-          id: Date.now(),
-          text: input,
-          completed: false,
-          dueDate: dueDate,
-          createdAt: createdAt,
-        };
-
-        setTodos([...todos, todoItem]);
-        setInput("");
-      }
+      setTodos([...todos, newTodo]);
+      setInput("");
     }
   };
 
