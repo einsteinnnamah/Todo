@@ -8,6 +8,9 @@ import { useTodos } from "@/hooks/useTodos";
 export const TodoList = () => {
   const { todos, setTodos } = useTodos();
   const [input, setInput] = useState("");
+  const [dueDate, setDueDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
   const filteredTodos = todos.filter((todo) => {
@@ -23,7 +26,7 @@ export const TodoList = () => {
         id: Date.now(),
         text: input.trim(),
         completed: false,
-        dueDate: new Date(),
+        dueDate: new Date(dueDate),
         createdAt: new Date(),
       };
 
@@ -46,13 +49,19 @@ export const TodoList = () => {
 
   return (
     <div className="max-w-md mx-auto mt-8">
-      <form onSubmit={addTodo} className="flex gap-2 mb-4">
+      <form onSubmit={addTodo} className="flex flex-col gap-2 mb-4">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1 px-4 py-2 border rounded text-black"
+          className="px-4 py-2 border rounded text-black"
           placeholder="Add a new todo..."
+        />
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="px-4 py-2 border rounded text-black"
         />
         <button
           type="submit"
