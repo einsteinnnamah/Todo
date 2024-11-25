@@ -1,5 +1,7 @@
-export interface Todo {
-  id: string | number;
+type Todo = {
+  id: number;
   text: string;
   completed: boolean;
-} 
+  dueDate: Date;
+  createdAt: Date;
+}; 

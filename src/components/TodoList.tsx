@@ -57,12 +57,51 @@ export const TodoList = () => {
           className="px-4 py-2 border rounded text-black"
           placeholder="Add a new todo..."
         />
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="px-4 py-2 border rounded text-black"
-        />
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-white">
+            Select Due Date and Time:
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="px-4 py-2 border rounded text-black flex-1"
+            />
+            <input
+              type="time"
+              onChange={(e) => {
+                const time = e.target.value;
+                const [hours, minutes] = time.split(":");
+                const formattedTime = `${hours}:${minutes}`;
+                setDueDate(`${dueDate}T${formattedTime}`);
+              }}
+              className="px-4 py-2 border rounded text-black"
+            />
+            <select
+              className="px-2 py-2 border rounded text-black"
+              onChange={(e) => {
+                const time = dueDate.split("T")[1];
+                if (!time) return;
+
+                const [hours, minutes] = time.split(":");
+                let hour = parseInt(hours);
+
+                if (e.target.value === "AM") {
+                  if (hour === 12) hour = 0;
+                } else if (e.target.value === "PM") {
+                  if (hour !== 12) hour += 12;
+                }
+
+                const formattedTime = `${hour}:${minutes}`;
+                setDueDate(`${dueDate.split("T")[0]}T${formattedTime}`);
+              }}
+            >
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
         <button
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded"

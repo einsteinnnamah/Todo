@@ -1,5 +1,3 @@
-import { Todo } from "../hooks/useTodos";
-
 interface TodoItemProps {
   todo: {
     id: number;
@@ -28,7 +26,14 @@ export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
         <span className="text-sm text-gray-500">
           Due:{" "}
           {todo.dueDate
-            ? new Date(todo.dueDate).toLocaleDateString()
+            ? new Date(todo.dueDate).toLocaleString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })
             : "No date set"}
         </span>
       </div>
