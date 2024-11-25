@@ -1,16 +1,18 @@
 interface TodoItemProps {
   todo: {
-    id: number;
     text: string;
     completed: boolean;
-    dueDate: Date;
-    createdAt: Date;
+    dueDate?: string;
   };
   onToggle: () => void;
   onDelete: () => void;
 }
 
-export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
+export const TodoItem: React.FC<TodoItemProps> = ({
+  todo,
+  onToggle,
+  onDelete,
+}) => {
   return (
     <li className="flex items-center justify-between p-3 bg-white rounded shadow">
       <div className="flex items-center gap-3">
