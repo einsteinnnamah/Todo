@@ -1,48 +1,43 @@
+interface Todo {
+  completed: boolean;
+  text: string;
+  due_date: string | null;
+}
+
 interface TodoItemProps {
-  todo: {
-    text: string;
-    completed: boolean;
-    dueDate?: string;
-  };
+  todo: Todo;
   onToggle: () => void;
   onDelete: () => void;
 }
 
-export const TodoItem: React.FC<TodoItemProps> = ({
-  todo,
-  onToggle,
-  onDelete,
-}) => {
+export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
+  // Format the due date for display
+  const formatDueDate = (date: string | null) => {
+    if (!date) return "No date set";
+    const formattedDate = new Date(date).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    return `Due: ${formattedDate}`;
+  };
+
   return (
-    <li className="flex items-center justify-between p-3 bg-white rounded shadow">
+    <li className="flex items-center justify-between p-4 bg-white rounded shadow">
       <div className="flex items-center gap-3">
         <input
           type="checkbox"
           checked={todo.completed}
           onChange={onToggle}
-          className="h-4 w-4"
+          className="w-5 h-5"
         />
         <span className={todo.completed ? "line-through text-gray-500" : ""}>
           {todo.text}
         </span>
         <span className="text-sm text-gray-500">
-          Due:{" "}
-          {todo.dueDate
-            ? new Date(todo.dueDate).toLocaleString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
-            : "No date set"}
+          {formatDueDate(todo.due_date)}
         </span>
       </div>
-      <button
-        onClick={onDelete}
-        className="px-2 py-1 text-red-500 hover:text-red-700"
-      >
+      <button onClick={onDelete} className="text-red-500 hover:text-red-700">
         Delete
       </button>
     </li>
