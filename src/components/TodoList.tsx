@@ -3,16 +3,33 @@
 import React, { useState, useEffect } from "react";
 import { TodoItem } from "./TodoItem";
 import { TodoFilters } from "./TodoFilters";
-import {
-  Todo,
-  getTodos,
-  createTodo,
-  updateTodo,
-  deleteTodo,
-  testConnection,
-} from "../lib/todoService";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+
+// Define the correct Todo interface matching your Supabase schema
+interface Todo {
+  id: string;
+  task: string;
+  completed: boolean;
+  user_id: string;
+  due_date: string | null;
+  created_at: string;
+}
+
+// Update the interface to be exported
+export interface TodoItemProps {
+  todo: {
+    task: string;
+    completed: boolean;
+    due_date: string | null;
+  };
+  onToggle: () => void;
+  onDelete: () => void;
+}
 
 export const TodoList = () => {
+  const { signOut, user } = useAuth();
+  const firstName = user?.user_metadata?.first_name || "there";
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState("");
   const [dueDate, setDueDate] = useState<string>(
@@ -23,18 +40,22 @@ export const TodoList = () => {
   // Load todos
   useEffect(() => {
     const loadTodos = async () => {
-      const data = await getTodos();
-      setTodos(data);
-    };
-    loadTodos();
-  }, []);
+      const { data, error } = await supabase
+        .from("todos")
+        .select("*")
+        .eq("user_id", user?.id)
+        .order("created_at", { ascending: false });
 
-  // Add this useEffect to test connection on component mount
-  useEffect(() => {
-    testConnection().then((result) => {
-      console.log("Initial connection test:", result);
-    });
-  }, []);
+      if (error) {
+        console.error("Error fetching todos:", error);
+        return;
+      }
+      setTodos(data || []);
+    };
+    if (user) {
+      loadTodos();
+    }
+  }, [user]);
 
   const filteredTodos = todos.filter((todo) => {
     if (filter === "active") return !todo.completed;
@@ -45,28 +66,57 @@ export const TodoList = () => {
   const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!input.trim()) return;
+      if (!input.trim() || !user) return;
 
       // Ensure the date includes time
       const dateWithTime = dueDate.includes("T")
         ? dueDate
         : `${dueDate}T00:00:00`;
 
-      const newTodo = await createTodo(input.trim(), dateWithTime);
-      setTodos((prevTodos) => [newTodo, ...prevTodos]);
+      const { data, error } = await supabase
+        .from("todos")
+        .insert([
+          {
+            task: input.trim(),
+            user_id: user.id,
+            due_date: dateWithTime,
+            completed: false,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      setTodos((prevTodos) => [data, ...prevTodos]);
       setInput("");
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to create todo");
     }
   };
+
   const toggleTodo = async (todo: Todo) => {
-    if (!todo.id) return;
-    const updated = await updateTodo(todo.id, { completed: !todo.completed });
+    if (!todo.id || !user) return;
+    const { data: updated, error } = await supabase
+      .from("todos")
+      .update({ completed: !todo.completed })
+      .eq("id", todo.id)
+      .eq("user_id", user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
     setTodos(todos.map((t) => (t.id === todo.id ? updated : t)));
   };
 
   const removeTodo = async (id: string) => {
-    await deleteTodo(id);
+    if (!user) return;
+    const { error } = await supabase
+      .from("todos")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) throw error;
     setTodos(todos.filter((t) => t.id !== id));
   };
 
@@ -94,6 +144,13 @@ export const TodoList = () => {
 
   return (
     <div className="max-w-md mx-auto mt-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">
+          Hello, {firstName}! 👋
+        </h1>
+        <p className="text-white">What&apos;s on your mind today?</p>
+      </div>
+
       <form onSubmit={addTodo} className="flex flex-col gap-2 mb-4">
         <input
           type="text"
@@ -143,11 +200,12 @@ export const TodoList = () => {
           <TodoItem
             key={todo.id}
             todo={{
-              ...todo,
-              due_date: todo.due_date || null,
+              task: todo.task,
+              completed: todo.completed,
+              due_date: todo.due_date,
             }}
             onToggle={() => toggleTodo(todo)}
-            onDelete={() => removeTodo(todo.id!)}
+            onDelete={() => removeTodo(todo.id)}
           />
         ))}
       </ul>
@@ -155,6 +213,15 @@ export const TodoList = () => {
       <div className="mt-4 text-sm text-gray-500">
         {todos.length} total items, {todos.filter((t) => !t.completed).length}{" "}
         remaining
+      </div>
+
+      <div className="fixed bottom-4 left-0 right-0 px-4">
+        <button
+          onClick={signOut}
+          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

@@ -26,10 +26,6 @@ const MobileCheck = ({ children, mobileOnly = true }: MobileCheckProps) => {
             Please open this application on your mobile phone or reduce your
             browser window size.
           </p>
-          <div className="mt-6 text-sm text-gray-500">
-            <p>Scan QR code or visit on mobile:</p>
-            {/* You can add a QR code here */}
-          </div>
         </div>
       </div>
     </>

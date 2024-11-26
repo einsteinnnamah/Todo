@@ -1,16 +1,10 @@
-interface Todo {
-  completed: boolean;
-  text: string;
-  due_date: string | null;
-}
+import { TodoItemProps } from "./TodoList";
 
-interface TodoItemProps {
-  todo: Todo;
-  onToggle: () => void;
-  onDelete: () => void;
-}
-
-export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
+export const TodoItem: React.FC<TodoItemProps> = ({
+  todo,
+  onToggle,
+  onDelete,
+}) => {
   // Format the due date for display
   const formatDueDate = (date: string | null) => {
     if (!date) return "No date set";
@@ -31,7 +25,7 @@ export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
           className="w-5 h-5"
         />
         <span className={todo.completed ? "line-through text-gray-500" : ""}>
-          {todo.text}
+          {todo.task}
         </span>
         <span className="text-sm text-gray-500">
           {formatDueDate(todo.due_date)}
