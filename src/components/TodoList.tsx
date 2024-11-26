@@ -36,6 +36,7 @@ export const TodoList = () => {
     new Date().toISOString().split("T")[0] + "T00:00"
   );
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+  const [showDueDate, setShowDueDate] = useState(false);
 
   // Load todos
   useEffect(() => {
@@ -68,10 +69,12 @@ export const TodoList = () => {
     try {
       if (!input.trim() || !user) return;
 
-      // Ensure the date includes time
-      const dateWithTime = dueDate.includes("T")
-        ? dueDate
-        : `${dueDate}T00:00:00`;
+      let formattedDate = null;
+      if (showDueDate) {
+        const [datePart, timePart] = dueDate.split("T");
+        const dateObj = new Date(`${datePart}T${timePart}`);
+        formattedDate = dateObj.toISOString();
+      }
 
       const { data, error } = await supabase
         .from("todos")
@@ -79,7 +82,7 @@ export const TodoList = () => {
           {
             task: input.trim(),
             user_id: user.id,
-            due_date: dateWithTime,
+            due_date: formattedDate,
             completed: false,
           },
         ])
@@ -89,6 +92,7 @@ export const TodoList = () => {
       if (error) throw error;
       setTodos((prevTodos) => [data, ...prevTodos]);
       setInput("");
+      setShowDueDate(false);
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to create todo");
     }
@@ -159,32 +163,47 @@ export const TodoList = () => {
           className="px-4 py-2 border rounded text-black"
           placeholder="Add a new todo..."
         />
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-white">
-            Select Due Date and Time:
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={dueDate.split("T")[0]}
-              onChange={(e) => setDueDate(`${e.target.value}T00:00`)}
-              className="px-4 py-2 border rounded text-black flex-1"
-            />
-            <input
-              type="time"
-              value={dueDate.split("T")[1] || "00:00"}
-              onChange={handleTimeChange}
-              className="px-4 py-2 border rounded text-black"
-            />
-            <select
-              className="px-2 py-2 border rounded text-black"
-              onChange={handleAMPMChange}
-            >
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
-            </select>
-          </div>
+
+        <div className="flex items-center gap-2 text-white">
+          <input
+            type="checkbox"
+            checked={showDueDate}
+            onChange={(e) => setShowDueDate(e.target.checked)}
+            id="showDueDate"
+            className="form-checkbox"
+          />
+          <label htmlFor="showDueDate">Add due date?</label>
         </div>
+
+        {showDueDate && (
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-white">
+              Select Due Date and Time:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dueDate.split("T")[0]}
+                onChange={(e) => setDueDate(`${e.target.value}T00:00`)}
+                className="px-4 py-2 border rounded text-black flex-1"
+              />
+              <input
+                type="time"
+                value={dueDate.split("T")[1] || "00:00"}
+                onChange={handleTimeChange}
+                className="px-4 py-2 border rounded text-black"
+              />
+              <select
+                className="px-2 py-2 border rounded text-black"
+                onChange={handleAMPMChange}
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         <button
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded"
