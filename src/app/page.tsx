@@ -7,13 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Home() {
   const { user } = useAuth();
 
-  if (!user) {
-    return <Auth />;
-  }
-
   return (
-    <MobileCheck mobileOnly>
-      <TodoList />
-    </MobileCheck>
+    <MobileCheck mobileOnly>{!user ? <Auth /> : <TodoList />}</MobileCheck>
   );
 }
