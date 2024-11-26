@@ -7,7 +7,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 }) => {
   // Format the due date for display
   const formatDueDate = (date: string | null) => {
-    if (!date) return "No date set";
+    if (!date) return ""; // Changed to return empty string instead of "No date set"
     const formattedDate = new Date(date).toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
@@ -27,9 +27,11 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         <span className={todo.completed ? "line-through text-gray-500" : ""}>
           {todo.task}
         </span>
-        <span className="text-sm text-gray-500">
-          {formatDueDate(todo.due_date)}
-        </span>
+        {todo.due_date && (
+          <span className="text-sm text-gray-500">
+            {formatDueDate(todo.due_date)}
+          </span>
+        )}
       </div>
       <button onClick={onDelete} className="text-red-500 hover:text-red-700">
         Delete
