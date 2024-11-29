@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { TodoItem } from "./TodoItem";
 import { TodoFilters } from "./TodoFilters";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,9 +27,14 @@ export interface TodoItemProps {
   onDelete: () => void;
 }
 
-export const TodoList = () => {
+// Since TodoListProps is not used, we can remove it or use it for the TodoList component
+export interface TodoListProps {
+  todos: Todo[];
+  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
+}
+
+export const TodoList: React.FC = () => {
   const { signOut, user } = useAuth();
-  const firstName = user?.user_metadata?.first_name || "there";
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState("");
   const [dueDate, setDueDate] = useState<string>(
@@ -38,25 +43,27 @@ export const TodoList = () => {
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [showDueDate, setShowDueDate] = useState(false);
 
-  // Load todos
+  // Fetch todos when component mounts
   useEffect(() => {
-    const loadTodos = async () => {
+    if (user) {
+      fetchTodos();
+    }
+  }, [user]);
+
+  const fetchTodos = async () => {
+    try {
       const { data, error } = await supabase
         .from("todos")
         .select("*")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching todos:", error);
-        return;
-      }
+      if (error) throw error;
       setTodos(data || []);
-    };
-    if (user) {
-      loadTodos();
+    } catch (error) {
+      console.error("Error fetching todos:", error);
     }
-  }, [user]);
+  };
 
   const filteredTodos = todos.filter((todo) => {
     if (filter === "active") return !todo.completed;
@@ -150,7 +157,7 @@ export const TodoList = () => {
     <div className="max-w-md mx-auto mt-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">
-          Hello, {firstName}! 👋
+          Hello, {user?.user_metadata?.first_name || "there"}! 👋
         </h1>
         <p className="text-white">What&apos;s on your mind today?</p>
       </div>
@@ -218,11 +225,7 @@ export const TodoList = () => {
         {filteredTodos.map((todo) => (
           <TodoItem
             key={todo.id}
-            todo={{
-              task: todo.task,
-              completed: todo.completed,
-              due_date: todo.due_date,
-            }}
+            todo={todo}
             onToggle={() => toggleTodo(todo)}
             onDelete={() => removeTodo(todo.id)}
           />

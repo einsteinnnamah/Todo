@@ -1,9 +1,10 @@
 export interface Todo {
-  id: number;
-  text: string;
+  id: string;
+  task: string;
   completed: boolean;
-  dueDate: Date;
-  createdAt: Date;
+  due_date?: string;
+  created_at: string;
+  user_id: string;
 }
 
 export interface TodoItemProps {

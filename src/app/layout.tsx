@@ -1,29 +1,14 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { Providers } from "./providers";
+import Script from "next/script";
 
-// Remove unused geistMono font declaration
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Todo App",
-  description: "A mobile-first todo application",
-  manifest: "/manifest.json",
-  icons: {
-    apple: "/icons/icon-192x192.png",
-    icon: [
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
-    ],
-  },
-  themeColor: "#3b82f6",
-};
-
-export const viewport = {
-  themeColor: "#3b82f6",
-  width: "device-width",
-  initialScale: 1,
-  minimumScale: 1,
-  shrinkToFit: "no",
-  viewportFit: "cover",
+  description: "A simple todo application",
 };
 
 export default function RootLayout({
@@ -33,8 +18,34 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <AuthProvider>{children}</AuthProvider>
+      <head>
+        {/* Load OneSignal SDK */}
+        <Script
+          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+          strategy="beforeInteractive"
+        />
+
+        {/* Initialize OneSignal */}
+        <Script id="onesignal-init" strategy="afterInteractive">
+          {`
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            window.OneSignalDeferred.push(async function(OneSignal) {
+              await OneSignal.init({
+                appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || ""}",
+                safari_web_id: "${
+                  process.env.NEXT_PUBLIC_ONESIGNAL_SAFARI_WEB_ID || ""
+                }",
+                allowLocalhostAsSecureOrigin: true,
+                notifyButton: {
+                  enable: true,
+                },
+              });
+            });
+          `}
+        </Script>
+      </head>
+      <body className={inter.className}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
